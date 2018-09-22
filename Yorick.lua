@@ -2,50 +2,50 @@ if myHero.charName ~= "Yorick" then return end
 
 -- [ update ]
 do
-      
-    local Version = 1
+    
+    local Version = 2
     
     local Files = {
-          Lua = {
-                Path = SCRIPT_PATH,
-                Name = "Yorick.lua",
-                Url = "https://raw.githubusercontent.com/miragessee/GoSYorick/master/Yorick.lua"
-          },
-          Version = {
-                Path = SCRIPT_PATH,
-                Name = "miragesyorick.version",
-                Url = "https://raw.githubusercontent.com/miragessee/GoSYorick/master/miragesyorick.version"
-          }
+        Lua = {
+            Path = SCRIPT_PATH,
+            Name = "Yorick.lua",
+            Url = "https://raw.githubusercontent.com/miragessee/GoSYorick/master/Yorick.lua"
+        },
+        Version = {
+            Path = SCRIPT_PATH,
+            Name = "miragesyorick.version",
+            Url = "https://raw.githubusercontent.com/miragessee/GoSYorick/master/miragesyorick.version"
+        }
     }
     
     local function AutoUpdate()
-          
-          local function DownloadFile(url, path, fileName)
-                DownloadFileAsync(url, path .. fileName, function() end)
-                while not FileExist(path .. fileName) do end
-          end
-          
-          local function ReadFile(path, fileName)
-                local file = io.open(path .. fileName, "r")
-                local result = file:read()
-                file:close()
-                return result
-          end
-          
-          DownloadFile(Files.Version.Url, Files.Version.Path, Files.Version.Name)
-          
-          local NewVersion = tonumber(ReadFile(Files.Version.Path, Files.Version.Name)) 
-          if NewVersion > Version then
-                DownloadFile(Files.Lua.Url, Files.Lua.Path, Files.Lua.Name)
-                print(Files.Version.Name .. ": Updated to " .. tostring(NewVersion) .. ". Please Reload with 2x F6")
-          else
-                print(Files.Version.Name .. ": No Updates Found")
-          end
-          
+        
+        local function DownloadFile(url, path, fileName)
+            DownloadFileAsync(url, path .. fileName, function() end)
+            while not FileExist(path .. fileName) do end
+        end
+        
+        local function ReadFile(path, fileName)
+            local file = io.open(path .. fileName, "r")
+            local result = file:read()
+            file:close()
+            return result
+        end
+        
+        DownloadFile(Files.Version.Url, Files.Version.Path, Files.Version.Name)
+        
+        local NewVersion = tonumber(ReadFile(Files.Version.Path, Files.Version.Name))
+        if NewVersion > Version then
+            DownloadFile(Files.Lua.Url, Files.Lua.Path, Files.Lua.Name)
+            print(Files.Version.Name .. ": Updated to " .. tostring(NewVersion) .. ". Please Reload with 2x F6")
+        else
+            print(Files.Version.Name .. ": No Updates Found")
+        end
+    
     end
     
     AutoUpdate()
-    
+
 end
 
 local _atan = math.atan2
@@ -335,7 +335,7 @@ function THydraDMG()--3748
     return 200
 end
 
-local Version, Author, LVersion = "v1", "miragessee", "8.18"
+local Version, Author, LVersion = "v2", "miragessee", "8.18"
 
 function Yorick:LoadMenu()
     self.YorickMenu = MenuElement({type = MENU, id = "Yorick", name = "Mirage's Yorick", leftIcon = HeroIcon})
@@ -360,6 +360,7 @@ function Yorick:LoadMenu()
     
     self.YorickMenu:MenuElement({id = "KillSteal", name = "KillSteal", type = MENU})
     self.YorickMenu.KillSteal:MenuElement({id = "UseIgnite", name = "Use Ignite", value = true, leftIcon = IgniteIcon})
+    self.YorickMenu.KillSteal:MenuElement({id = "UseQ", name = "Use Q", value = true, leftIcon = QIcon})
     self.YorickMenu.KillSteal:MenuElement({id = "UseE", name = "Use E", value = true, leftIcon = EIcon})
     self.YorickMenu.KillSteal:MenuElement({id = "UseT", name = "Use Tiamat", value = true, leftIcon = TiamatIcon})
     self.YorickMenu.KillSteal:MenuElement({id = "UseTH", name = "Use Titanic Hydra", value = true, leftIcon = THydraIcon})
@@ -563,6 +564,24 @@ function Yorick:KillSteal()
             end
         end
     end
+    if self.YorickMenu.KillSteal.UseE:Value() then
+        if IsReady(_E) then
+            for i, enemy in pairs(GetEnemyHeroes()) do
+                if ValidTarget(enemy, YorickE.range) and enemy.health < EDmg() then
+                    LocalControlCastSpell(HK_E, enemy)
+                end
+            end
+        end
+    end
+    if self.YorickMenu.KillSteal.UseQ:Value() then
+        if IsReady(_Q) then
+            for i, enemy in pairs(GetEnemyHeroes()) do
+                if ValidTarget(enemy, YorickQ.range) and enemy.health < QDmg() then
+                    LocalControlCastSpell(HK_Q, enemy)
+                end
+            end
+        end
+    end
 end
 
 function Yorick:Draw()
@@ -727,8 +746,8 @@ function Yorick:CastW(target, EcastPos)
 end
 
 function Yorick:Combo()
-
-	local targetTiamat = GOS:GetTarget(380, "AP")
+    
+    local targetTiamat = GOS:GetTarget(380, "AP")
     
     if self.YorickMenu.Combo.UseT:Value() then
         if GetItemSlot(myHero, 3077) > 0 and ValidTarget(targetTiamat, 380) then
@@ -795,9 +814,9 @@ function Yorick:Combo()
                 end
             end
         end
-	end
-	
-	if targetR then
+    end
+    
+    if targetR then
         if not IsImmune(targetR) then
             if self.YorickMenu.Combo.UseR:Value() then
                 if IsReady(_R) then
